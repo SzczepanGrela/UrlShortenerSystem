@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Moq;
@@ -16,6 +17,9 @@ namespace UrlShortener.Tests
         private readonly Mock<ILinkService> _mockLinkService;
         private readonly Mock<IAnalyticsService> _mockAnalyticsService;
         private readonly Mock<ILogger<RedirectController>> _mockLogger;
+        private readonly Mock<IServiceScopeFactory> _mockServiceScopeFactory;
+        private readonly Mock<IServiceScope> _mockServiceScope;
+        private readonly Mock<IServiceProvider> _mockServiceProvider;
         private readonly RedirectController _controller;
 
         public RedirectControllerTests()
@@ -23,7 +27,17 @@ namespace UrlShortener.Tests
             _mockLinkService = new Mock<ILinkService>();
             _mockAnalyticsService = new Mock<IAnalyticsService>();
             _mockLogger = new Mock<ILogger<RedirectController>>();
-            _controller = new RedirectController(_mockLinkService.Object, _mockAnalyticsService.Object, _mockLogger.Object);
+            _mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
+            _mockServiceScope = new Mock<IServiceScope>();
+            _mockServiceProvider = new Mock<IServiceProvider>();
+            
+            // Setup service scope factory to return mocked analytics service
+            _mockServiceProvider.Setup(sp => sp.GetRequiredService<IAnalyticsService>())
+                .Returns(_mockAnalyticsService.Object);
+            _mockServiceScope.Setup(s => s.ServiceProvider).Returns(_mockServiceProvider.Object);
+            _mockServiceScopeFactory.Setup(sf => sf.CreateScope()).Returns(_mockServiceScope.Object);
+            
+            _controller = new RedirectController(_mockLinkService.Object, _mockAnalyticsService.Object, _mockLogger.Object, _mockServiceScopeFactory.Object);
         }
 
         [Fact]

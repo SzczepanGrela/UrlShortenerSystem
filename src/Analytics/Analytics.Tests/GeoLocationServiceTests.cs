@@ -97,7 +97,7 @@ namespace Analytics.Tests
             VerifyWarningLogged("Invalid IP address format:");
         }*/
 
-        /*[Theory]
+        [Theory]
         [InlineData("10.0.0.1")]       // Private Class A
         [InlineData("172.16.0.1")]     // Private Class B
         [InlineData("192.168.1.1")]    // Private Class C
@@ -118,7 +118,7 @@ namespace Analytics.Tests
             Assert.Null(result.Country);
             Assert.Null(result.City);
             VerifyDebugLogged("Skipping geolocation for private/local IP:");
-        }*/
+        }
 
         [Theory]
         [InlineData("203.0.113.1")]    // Public IP

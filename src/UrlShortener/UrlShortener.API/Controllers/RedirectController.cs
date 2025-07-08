@@ -10,12 +10,14 @@ namespace UrlShortener.API.Controllers
         private readonly ILinkService _linkService;
         private readonly IAnalyticsService _analyticsService;
         private readonly ILogger<RedirectController> _logger;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public RedirectController(ILinkService linkService, IAnalyticsService analyticsService, ILogger<RedirectController> logger)
+        public RedirectController(ILinkService linkService, IAnalyticsService analyticsService, ILogger<RedirectController> logger, IServiceScopeFactory serviceScopeFactory)
         {
             _linkService = linkService;
             _analyticsService = analyticsService;
             _logger = logger;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         /// <summary>
@@ -47,18 +49,20 @@ namespace UrlShortener.API.Controllers
             var referer = HttpContext.Request.Headers["Referer"].ToString();
 
             // Zarejestruj kliknięcie w serwisie analityki (fire-and-forget)
-            _ = Task.Run(async () =>
+            _ = Task.Factory.StartNew(async () =>
             {
                 try
                 {
-                    await _analyticsService.RegisterClick(link.Id, link.OriginalUrl, ipAddress, userAgent, referer);
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var analyticsService = scope.ServiceProvider.GetRequiredService<IAnalyticsService>();
+                    await analyticsService.RegisterClick(link.Id, link.OriginalUrl, ipAddress, userAgent, referer);
                 }
                 catch (Exception ex)
                 {
                     // Log but don't fail the redirect
                     _logger.LogWarning(ex, "Analytics registration failed for link {LinkId}", link.Id);
                 }
-            });
+            }, TaskCreationOptions.LongRunning).Unwrap();
 
             return Redirect(link.OriginalUrl);
         }

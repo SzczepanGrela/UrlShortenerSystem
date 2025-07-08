@@ -19,7 +19,7 @@ namespace UrlShortener.API.Extensions
             
             // Core services
             services.AddTransient<ILinkService, LinkService>();
-            services.AddTransient<IAnalyticsService, AnalyticsService>();
+            services.AddScoped<IAnalyticsService, AnalyticsService>();
             services.AddDbContext<UrlShortenerDbContext>();
             services.AddHttpClient<AnalyticsService>(client =>
             {
