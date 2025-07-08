@@ -1,0 +1,607 @@
+{
+	"info": {
+		"_postman_id": "d2c45e67-1234-5678-9abc-def123456789",
+		"name": "UrlShortenerSystem API Tests",
+		"description": "Complete API test collection for UrlShortenerSystem microservices",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "UrlShortener API",
+			"item": [
+				{
+					"name": "Create Link",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has required fields\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('originalUrl');",
+									"    pm.expect(jsonData).to.have.property('shortCode');",
+									"    pm.expect(jsonData).to.have.property('shortUrl');",
+									"    pm.expect(jsonData).to.have.property('creationDate');",
+									"});",
+									"",
+									"pm.test(\"Save shortCode and linkId for other tests\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('shortCode', jsonData.shortCode);",
+									"    pm.collectionVariables.set('linkId', jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"originalUrl\": \"https://www.example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/links",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"links"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Link with Expiration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has expiration date\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('expirationDate');",
+									"    pm.expect(jsonData.expirationDate).to.not.be.null;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"originalUrl\": \"https://www.google.com\",\n  \"expirationDate\": \"2024-12-31T23:59:59Z\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/links",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"links"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Link by Short Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response matches created link\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.originalUrl).to.eql('https://www.example.com');",
+									"    pm.expect(jsonData.shortCode).to.eql(pm.collectionVariables.get('shortCode'));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/links/{{shortCode}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"links",
+								"{{shortCode}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Redirect to Original URL",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 302 (redirect)\", function () {",
+									"    pm.response.to.have.status(302);",
+									"});",
+									"",
+									"pm.test(\"Location header points to original URL\", function () {",
+									"    pm.expect(pm.response.headers.get('Location')).to.eql('https://www.example.com');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/{{shortCode}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"{{shortCode}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Link",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+		
+								],
+								"type": "text/javascript" 
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/links/{{linkId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"links",
+								"{{linkId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Analytics API",
+			"item": [
+				{
+					"name": "Register Click",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has click data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('linkId');",
+									"    pm.expect(jsonData).to.have.property('timestamp');",
+									"    pm.expect(jsonData).to.have.property('ipAddress');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"linkId\": \"{{linkId}}\",\n  \"timestamp\": \"{{$isoTimestamp}}\",\n  \"ipAddress\": \"192.168.1.100\",\n  \"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\",\n  \"referer\": \"https://google.com\"\n}"
+						},
+						"url": {
+							"raw": "{{analyticsBaseUrl}}/api/analytics/clicks",
+							"host": [
+								"{{analyticsBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"clicks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register Multiple Clicks for Stats",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Register multiple clicks for better stats testing",
+									"const linkId = pm.collectionVariables.get('linkId');",
+									"",
+									"if (linkId) {",
+									"    // This will be executed multiple times manually or with runner",
+									"    const clickData = {",
+									"        linkId: linkId,",
+									"        timestamp: new Date().toISOString(),",
+									"        ipAddress: `192.168.1.${Math.floor(Math.random() * 100)}`,",
+									"        userAgent: \"Test User Agent\",",
+									"        referer: \"https://example.com\"",
+									"    };",
+									"    ",
+									"    pm.sendRequest({",
+									"        url: pm.collectionVariables.get('analyticsBaseUrl') + '/api/analytics/clicks',",
+									"        method: 'POST',",
+									"        header: {",
+									"            'Content-Type': 'application/json'",
+									"        },",
+									"        body: {",
+									"            mode: 'raw',",
+									"            raw: JSON.stringify(clickData)",
+									"        }",
+									"    }, function (err, response) {",
+									"        console.log('Additional click registered for stats');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"linkId\": \"{{linkId}}\",\n  \"timestamp\": \"{{$isoTimestamp}}\",\n  \"ipAddress\": \"192.168.1.200\",\n  \"userAgent\": \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36\",\n  \"referer\": \"https://twitter.com\"\n}"
+						},
+						"url": {
+							"raw": "{{analyticsBaseUrl}}/api/analytics/clicks",
+							"host": [
+								"{{analyticsBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"clicks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Link Stats",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has stats structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('linkId');",
+									"    pm.expect(jsonData).to.have.property('totalClicks');",
+									"    pm.expect(jsonData).to.have.property('uniqueClicks');",
+									"    pm.expect(jsonData).to.have.property('dailyStats');",
+									"    pm.expect(jsonData).to.have.property('countryStats');",
+									"});",
+									"",
+									"pm.test(\"Stats show some clicks\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.totalClicks).to.be.above(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{analyticsBaseUrl}}/api/analytics/links/{{linkId}}/stats",
+							"host": [
+								"{{analyticsBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"links",
+								"{{linkId}}",
+								"stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Link Clicks",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Clicks have required fields\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.length > 0) {",
+									"        pm.expect(jsonData[0]).to.have.property('id');",
+									"        pm.expect(jsonData[0]).to.have.property('linkId');",
+									"        pm.expect(jsonData[0]).to.have.property('timestamp');",
+									"        pm.expect(jsonData[0]).to.have.property('ipAddress');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{analyticsBaseUrl}}/api/analytics/links/{{linkId}}/clicks?page=1&pageSize=10",
+							"host": [
+								"{{analyticsBaseUrl}}"
+							],
+							"path": [
+								"api",
+								"analytics",
+								"links",
+								"{{linkId}}",
+								"clicks"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Error Scenarios",
+			"item": [
+				{
+					"name": "Get Non-existent Link",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/links/NONEXISTENT",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"links",
+								"NONEXISTENT"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Redirect Non-existent Short Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/NONEXISTENT",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"NONEXISTENT"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Link with Invalid URL",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"originalUrl\": \"not-a-valid-url\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/links",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"links"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://localhost:7000",
+			"type": "string"
+		},
+		{
+			"key": "analyticsBaseUrl",
+			"value": "https://localhost:7001",
+			"type": "string"
+		},
+		{
+			"key": "shortCode",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "linkId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
