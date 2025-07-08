@@ -32,7 +32,7 @@ namespace UrlShortener.Tests
             _mockServiceProvider = new Mock<IServiceProvider>();
             
             // Setup service scope factory to return mocked analytics service
-            _mockServiceProvider.Setup(sp => sp.GetRequiredService<IAnalyticsService>())
+            _mockServiceProvider.Setup(sp => sp.GetService(typeof(IAnalyticsService)))
                 .Returns(_mockAnalyticsService.Object);
             _mockServiceScope.Setup(s => s.ServiceProvider).Returns(_mockServiceProvider.Object);
             _mockServiceScopeFactory.Setup(sf => sf.CreateScope()).Returns(_mockServiceScope.Object);

@@ -117,7 +117,7 @@ namespace Analytics.Tests
             // Assert
             Assert.Null(result.Country);
             Assert.Null(result.City);
-            VerifyDebugLogged("Skipping geolocation for private/local IP:");
+            VerifyDebugLogged("GeoIP2 database not available");
         }
 
         [Theory]
@@ -212,7 +212,7 @@ namespace Analytics.Tests
             // Assert
             Assert.Null(result.Country);
             Assert.Null(result.City);
-            VerifyDebugLogged("Skipping geolocation for private/local IP:");
+            VerifyDebugLogged("GeoIP2 database not available");
         }*/
 
         [Fact]
